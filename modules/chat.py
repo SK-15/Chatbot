@@ -28,3 +28,44 @@ async def get_thread_chats(user_id: str, thread_id: str):
     except Exception as e:
         print(f"Error fetching chats: {e}")
         return []
+
+async def create_thread(user_id: str, title: str = "New Chat"):
+    """
+    Create a new thread for the user.
+    """
+    try:
+        response = supabase.table("threads").insert({
+            "user_id": user_id,
+            "title": title
+        }).execute()
+        
+        if response.data:
+            return response.data[0]
+        return None
+    except Exception as e:
+        print(f"Error creating thread: {e}")
+        return None
+
+async def save_chat_message(user_id: str, thread_id: str, prompt: str, response: str):
+    """
+    Save the user prompt and AI response to the database.
+    Also update the thread's updated_at timestamp.
+    """
+    try:
+        # Save chat message
+        supabase.table("chat_history").insert({
+            "user_id": user_id,
+            "thread_id": thread_id,
+            "query": prompt,
+            "response": response
+        }).execute()
+
+        # Update thread timestamp
+        supabase.table("threads").update({
+            "updated_at": "now()"
+        }).eq("id", thread_id).execute()
+
+        return True
+    except Exception as e:
+        print(f"Error saving chat: {e}")
+        return False

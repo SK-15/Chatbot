@@ -64,8 +64,35 @@ Authenticate a user and receive access tokens.
 *   **Error Response**:
     *   **Code**: 401 Unauthorized (invalid credentials)
 
-### 3. Chat (Streaming)
-Get a streaming response from an LLM.
+### 3. Create New Chat (Thread)
+Create a new conversation thread.
+
+*   **URL**: `/new_chat`
+*   **Method**: `POST`
+*   **Headers**:
+    *   `Authorization: Bearer <access_token>`
+*   **Request Body**:
+    ```json
+    {
+      "title": "My New Chat"
+    }
+    ```
+    *   `title`: Optional. Default is "New Chat".
+*   **Success Response**:
+    *   **Code**: 200 OK
+    *   **Content**:
+        ```json
+        {
+          "id": "thread-uuid",
+          "user_id": "user-uuid",
+          "title": "My New Chat",
+          "created_at": "timestamp",
+          "updated_at": "timestamp"
+        }
+        ```
+
+### 4. Chat (Streaming)
+Send a message to a thread and get a streaming response.
 
 *   **URL**: `/chat`
 *   **Method**: `POST`
@@ -75,16 +102,65 @@ Get a streaming response from an LLM.
     ```json
     {
       "prompt": "Tell me a joke.",
+      "thread_id": "thread-uuid",
       "provider": "openai" 
     }
     ```
+    *   `thread_id`: **Required**. The ID of the thread to post to.
     *   `provider`: Optional. Can be `"openai"` (default) or `"gemini"`.
 *   **Success Response**:
     *   **Code**: 200 OK
     *   **Content-Type**: `text/event-stream`
     *   **Body**: A stream of text chunks.
 *   **Error Response**:
-    *   **Code**: 401 Unauthorized (missing or invalid token)
+    *   **Code**: 401 Unauthorized
+    *   **Code**: 500 Internal Server Error
+
+### 5. List Threads
+Get all conversation threads for the user.
+
+*   **URL**: `/threads`
+*   **Method**: `GET`
+*   **Headers**:
+    *   `Authorization: Bearer <access_token>`
+*   **Success Response**:
+    *   **Code**: 200 OK
+    *   **Content**:
+        ```json
+        {
+          "threads": [
+            {
+              "id": "thread-uuid",
+              "title": "My New Chat",
+              "created_at": "timestamp",
+              "updated_at": "timestamp"
+            }
+          ]
+        }
+        ```
+
+### 6. Get Thread History
+Get all chat messages for a specific thread.
+
+*   **URL**: `/threads/{thread_id}/chats`
+*   **Method**: `GET`
+*   **Headers**:
+    *   `Authorization: Bearer <access_token>`
+*   **Success Response**:
+    *   **Code**: 200 OK
+    *   **Content**:
+        ```json
+        {
+          "chats": [
+            {
+              "id": "chat-uuid",
+              "query": "User prompt",
+              "response": "AI response",
+              "created_at": "timestamp"
+            }
+          ]
+        }
+        ```
 
 ---
 
@@ -104,11 +180,31 @@ curl -X POST http://localhost:8000/login \
      -d '{"email": "test@example.com", "password": "Password123!"}'
 ```
 
+### Create New Chat
+```bash
+curl -X POST http://localhost:8000/new_chat \
+     -H "Authorization: Bearer <TOKEN>" \
+     -H "Content-Type: application/json" \
+     -d '{"title": "Test Chat"}'
+```
+
 ### Chat
 ```bash
 curl -X POST http://localhost:8000/chat \
-     -H "Authorization: Bearer <TOKEN_FROM_LOGIN>" \
+     -H "Authorization: Bearer <TOKEN>" \
      -H "Content-Type: application/json" \
-     -d '{"prompt": "Hi!", "provider": "openai"}' \
+     -d '{"prompt": "Hi!", "thread_id": "<THREAD_ID>", "provider": "openai"}' \
      --no-buffer
+```
+
+### List Threads
+```bash
+curl -X GET http://localhost:8000/threads \
+     -H "Authorization: Bearer <TOKEN>"
+```
+
+### Get Chats for Thread
+```bash
+curl -X GET http://localhost:8000/threads/<THREAD_ID>/chats \
+     -H "Authorization: Bearer <TOKEN>"
 ```
