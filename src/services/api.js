@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_URL = 'https://adcrkz336r.ap-south-1.awsapprunner.com';
 
 export const api = {
     async signup(email, password) {
