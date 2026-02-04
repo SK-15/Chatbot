@@ -3,7 +3,7 @@
 This API provides authentication via Supabase and streaming chat responses from OpenAI and Gemini.
 
 ## Base URL
-`https://adcrkz336r.ap-south-1.awsapprunner.com/`
+`http://localhost:8000`
 
 ## Authentication
 Most endpoints are public, but the `/chat` endpoint requires a valid Supabase access token passed in the `Authorization` header.
@@ -203,8 +203,31 @@ curl -X GET http://localhost:8000/threads \
      -H "Authorization: Bearer <TOKEN>"
 ```
 
+
 ### Get Chats for Thread
 ```bash
 curl -X GET http://localhost:8000/threads/<THREAD_ID>/chats \
      -H "Authorization: Bearer <TOKEN>"
 ```
+
+---
+
+## Database Schema
+
+### `threads` Table
+| Column       | Type                     | Description |
+|--------------|--------------------------|-------------|
+| `id`         | `uuid` (PK)              | Unique thread ID |
+| `user_id`    | `uuid` (FK)              | Reference to `auth.users` |
+| `title`      | `text`                   | Title of the conversation |
+| `created_at` | `timestamp with timezone`| Creation timestamp |
+| `updated_at` | `timestamp with timezone`| Last update timestamp |
+
+### `chat_history` Table
+| Column       | Type                     | Description |
+|--------------|--------------------------|-------------|
+| `id`         | `uuid` (PK)              | Unique message ID |
+| `thread_id`  | `uuid` (FK)              | Reference to `threads.id` |
+| `query`      | `text`                   | User's message |
+| `response`   | `text`                   | AI's response |
+| `created_at` | `timestamp with timezone`| Timestamp of the message |

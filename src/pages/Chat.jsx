@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { LogOut, Plus, Send, Bot, User, Loader2, Menu, X, Mic, Paperclip, ChevronDown, Sparkles, MessageSquare } from 'lucide-react';
+import { LogOut, Plus, Send, User, Loader2, Menu, X, Mic, Paperclip, ChevronDown, Sparkles, MessageSquare } from 'lucide-react';
+import appIcon from '../assets/icon.png';
 
 export default function Chat() {
     const { logout, user } = useAuth();
@@ -40,18 +41,39 @@ export default function Chat() {
         setActiveThreadId(threadId);
         setSidebarOpen(false); // Close sidebar on mobile selection
         try {
+            console.log("Loading history for thread:", threadId);
             const data = await api.getThreadHistory(threadId, token);
-            // Transform backend message format to frontend format if needed
-            // Backend: { query: "...", response: "...", created_at: "..." }
-            // Frontend: { role: 'user', content: "..." }, { role: 'assistant', content: "..." }
+            console.log("API Response:", data);
+
+            // Transform backend message format to frontend format
+            // Expected Backend: { chats: [{ query: "...", response: "..." }] }
+            // Handling fallbacks for: [{ query: "...", response: "..." }]
+
+            let chats = [];
+            if (data.chats && Array.isArray(data.chats)) {
+                chats = data.chats;
+            } else if (Array.isArray(data)) {
+                chats = data;
+            } else {
+                console.warn("Unexpected chat history format:", data);
+            }
+
+            console.log("Processing chats:", chats.length);
 
             const history = [];
-            if (data.chats) {
-                data.chats.forEach(chat => {
-                    history.push({ role: 'user', content: chat.query });
-                    history.push({ role: 'assistant', content: chat.response });
-                });
-            }
+            chats.forEach(chat => {
+                // Ensure we handle potential field naming variations if necessary
+                const userContent = chat.query || chat.user_message || chat.prompt || "";
+                const aiContent = chat.response || chat.ai_message || chat.result || "";
+
+                if (userContent) {
+                    history.push({ role: 'user', content: userContent });
+                }
+                if (aiContent) {
+                    history.push({ role: 'assistant', content: aiContent });
+                }
+            });
+
             setMessages(history);
         } catch (err) {
             console.error("Failed to load history", err);
@@ -136,48 +158,8 @@ export default function Chat() {
     };
 
     // Shared Input Component
-    const ChatInputBox = () => (
-        <div className="input-container">
-            <form onSubmit={handleSend} className="input-box-wrapper">
-                <textarea
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSend(e);
-                        }
-                    }}
-                    placeholder="Message ChatGPT"
-                    className="chat-textarea scrollbar-thin"
-                    rows={1}
-                />
+    // This was previously defined here but moved outside to prevent re-renders causing focus loss
 
-                <div className="input-actions">
-                    <button type="button" className="attach-btn" title="Add attachment">
-                        <Paperclip className="w-5 h-5" />
-                    </button>
-
-                    {input.trim() ? (
-                        <button
-                            type="submit"
-                            className="send-btn"
-                            disabled={loading}
-                        >
-                            <Send className="w-4 h-4" />
-                        </button>
-                    ) : (
-                        <button type="button" className="attach-btn" title="Voice typing">
-                            <Mic className="w-5 h-5" />
-                        </button>
-                    )}
-                </div>
-            </form>
-            <div style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.75rem' }}>
-                ChatGPT can make mistakes. Check important info.
-            </div>
-        </div>
-    );
 
     return (
         <div className="app-container">
@@ -194,8 +176,8 @@ export default function Chat() {
                     </button>
                     <button onClick={startNewChat} className="new-chat-btn">
                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <div style={{ background: 'var(--text-primary)', color: 'var(--bg-color)', padding: '0.125rem', borderRadius: '50%' }}>
-                                <div style={{ width: '1rem', height: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '10px' }}>C</div>
+                            <div style={{ background: 'transparent', padding: '0.125rem' }}>
+                                <img src={appIcon} alt="New Chat" style={{ width: '1.25rem', height: '1.25rem', objectFit: 'contain' }} />
                             </div>
                             New Chat
                         </span>
@@ -217,21 +199,11 @@ export default function Chat() {
                 </div>
 
                 <div className="user-menu">
-                    <button className="menu-item">
-                        <div style={{ width: '1.75rem', height: '1.75rem', borderRadius: '50%', background: 'var(--surface-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.1)' }}>
-                            <Sparkles className="w-4 h-4" />
-                        </div>
-                        <div>
-                            <div style={{ fontWeight: 500 }}>Upgrade plan</div>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Get GPT-4, DALL·E, and more</div>
-                        </div>
-                    </button>
-
                     <button onClick={handleLogout} className="menu-item">
                         <div style={{ width: '1.75rem', height: '1.75rem', borderRadius: '50%', background: 'rgba(168,85,247,0.2)', color: '#a855f7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: '0.75rem', border: '1px solid rgba(168,85,247,0.2)' }}>
-                            {user?.id ? user.id.substring(0, 2).toUpperCase() : 'U'}
+                            <User className="w-4 h-4" />
                         </div>
-                        <div style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.id || 'User'}</div>
+                        <div style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>User</div>
                         <LogOut className="w-4 h-4 text-text-muted" />
                     </button>
                 </div>
@@ -247,10 +219,7 @@ export default function Chat() {
                         </button>
                     </div>
 
-                    <button style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', background: 'transparent', border: 'none', borderRadius: '0.5rem', cursor: 'pointer', margin: '0 auto', color: 'var(--text-secondary)', fontSize: '1.125rem', fontWeight: 500 }}>
-                        <span>{provider === 'openai' ? 'ChatGPT 4o' : 'Gemini 1.5'}</span>
-                        <ChevronDown className="w-4 h-4 opacity-50" />
-                    </button>
+
 
                     <div style={{ width: '2rem' }} className="md:hidden"></div> {/* Spacer for centering on mobile */}
                 </header>
@@ -259,8 +228,8 @@ export default function Chat() {
                     /* Home State */
                     <div className="chat-home fade-in">
                         <div style={{ marginBottom: '2rem' }}>
-                            <div style={{ width: '3rem', height: '3rem', background: 'var(--text-primary)', color: 'var(--bg-color)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
-                                {/* Logo */}
+                            <div style={{ width: '3rem', height: '3rem', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+                                <img src={appIcon} alt="App Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                             </div>
                         </div>
                         <h1>What can I help with?</h1>
@@ -321,8 +290,8 @@ export default function Chat() {
                                 {messages.map((msg, i) => (
                                     <div key={i} className={`message-row ${msg.role === 'user' ? 'user' : 'assistant'}`}>
                                         {msg.role !== 'user' && (
-                                            <div className="avatar">
-                                                <Bot className="w-5 h-5 text-text-primary" />
+                                            <div className="avatar" style={{ border: 'none', background: 'transparent', borderRadius: 0 }}>
+                                                <img src={appIcon} alt="AI" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                                             </div>
                                         )}
 
@@ -343,10 +312,59 @@ export default function Chat() {
                             </div>
                         </div>
 
-                        <ChatInputBox />
+                        <ChatInputBox
+                            input={input}
+                            setInput={setInput}
+                            handleSend={handleSend}
+                            loading={loading}
+                        />
                     </>
                 )}
             </main>
         </div>
     );
 }
+
+// Shared Input Component extracted to prevent re-renders
+const ChatInputBox = ({ input, setInput, handleSend, loading }) => (
+    <div className="input-container">
+        <form onSubmit={handleSend} className="input-box-wrapper">
+            <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSend(e);
+                    }
+                }}
+                placeholder="Message ChatGPT"
+                className="chat-textarea scrollbar-thin"
+                rows={1}
+            />
+
+            <div className="input-actions">
+                <button type="button" className="attach-btn" title="Add attachment">
+                    <Paperclip className="w-5 h-5" />
+                </button>
+
+                {input.trim() ? (
+                    <button
+                        type="submit"
+                        className="send-btn"
+                        disabled={loading}
+                    >
+                        <Send className="w-4 h-4" />
+                    </button>
+                ) : (
+                    <button type="button" className="attach-btn" title="Voice typing">
+                        <Mic className="w-5 h-5" />
+                    </button>
+                )}
+            </div>
+        </form>
+        <div style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.75rem' }}>
+            ChatGPT can make mistakes. Check important info.
+        </div>
+    </div>
+);

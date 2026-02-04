@@ -21,6 +21,15 @@
   --radius-lg: 1rem;
   --radius-full: 9999px;
   --header-height: 60px;
+
+  /* Custom Colors */
+  --cyan-primary: #06b6d4;
+  --cyan-glow: rgba(6, 182, 212, 0.5);
+  --cyan-halo: rgba(6, 182, 212, 0.3);
+  /* Softer halo */
+  --cyan-hover: rgba(6, 182, 212, 0.1);
+  /* Lower opacity for subtle feel */
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 * {
@@ -156,7 +165,8 @@ body {
 }
 
 .social-btn:hover {
-  background-color: var(--surface-hover);
+  background-color: var(--cyan-hover);
+  box-shadow: 0 0 15px -3px var(--cyan-halo);
 }
 
 .social-icon {
@@ -251,7 +261,8 @@ body {
 }
 
 .new-chat-btn:hover {
-  background-color: var(--surface-hover);
+  background-color: var(--cyan-hover);
+  box-shadow: 0 0 15px -3px var(--cyan-halo);
 }
 
 .sidebar-section-title {
@@ -279,8 +290,9 @@ body {
 
 .history-item:hover,
 .history-item.active {
-  background-color: var(--surface-hover);
-  color: var(--text-primary);
+  background-color: var(--cyan-hover);
+  color: var(--cyan-primary);
+  box-shadow: 0 0 15px -3px var(--cyan-halo);
 }
 
 .user-menu {
@@ -305,7 +317,8 @@ body {
 }
 
 .menu-item:hover {
-  background-color: var(--surface-hover);
+  background-color: var(--cyan-hover);
+  box-shadow: 0 0 15px -3px var(--cyan-halo);
 }
 
 /* --- Components: Chat Area --- */
@@ -347,8 +360,9 @@ body {
 }
 
 .suggestion-chip:hover {
-  background-color: var(--surface-hover);
-  color: var(--text-primary);
+  background-color: var(--cyan-hover);
+  color: var(--cyan-primary);
+  box-shadow: 0 0 15px -3px var(--cyan-halo);
 }
 
 .chat-scroll-area {
@@ -453,13 +467,17 @@ body {
   position: relative;
   background-color: var(--input-bg);
   border-radius: 1.5rem;
-  padding: 0.75rem;
-  transition: border-color 0.2s;
-  border: 1px solid transparent;
+  padding: 0.25rem 0.5rem;
+  /* Reduced padding for thinner look */
+  transition: border-color 0.2s, box-shadow 0.2s;
+  border: 1px solid var(--border-color);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
 }
 
 .input-box-wrapper:focus-within {
-  border-color: var(--border-color);
+  box-shadow: 0 0 20px -5px var(--cyan-halo);
 }
 
 .chat-textarea {
@@ -491,12 +509,22 @@ body {
   border: none;
   cursor: pointer;
   padding: 0.25rem;
+  border-radius: 50%;
+  /* Ensure circular hover */
+  transition: all 0.2s;
+}
+
+.attach-btn:hover {
+  background-color: var(--cyan-hover);
+  color: var(--cyan-primary);
+  box-shadow: 0 0 15px -3px var(--cyan-halo);
 }
 
 .send-btn {
-  background-color: #ffffff;
+  background-color: var(--cyan-primary);
+  /* Cyan button */
   /* White send button */
-  color: #000000;
+  color: #ffffff;
   border: none;
   border-radius: 50%;
   width: 32px;
@@ -506,9 +534,18 @@ body {
   justify-content: center;
   cursor: pointer;
   position: absolute;
-  bottom: 0.75rem;
-  right: 0.75rem;
-  transition: opacity 0.2s;
+  bottom: 0.35rem;
+  /* Adjusted for thinner box */
+  right: 0.35rem;
+  /* Adjusted for thinner box */
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.send-btn:hover:not(:disabled) {
+  transform: translateY(50%) scale(1.1);
+  background-color: #0891b2;
+  /* Slightly darker cyan for hover/active */
+  box-shadow: 0 0 8px var(--cyan-glow);
 }
 
 .send-btn:disabled {
