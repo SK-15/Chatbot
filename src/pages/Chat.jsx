@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { LogOut, Plus, Send, User, Loader2, Menu, X, Mic, Paperclip, ChevronDown, Sparkles, MessageSquare } from 'lucide-react';
+import { LogOut, Plus, ArrowUp, User, Loader2, Menu, X, Mic, Paperclip, ChevronDown, Sparkles, MessageSquare, FileUp, Globe, BrainCircuit } from 'lucide-react';
 import appIcon from '../assets/icon.png';
 
 export default function Chat() {
@@ -17,7 +17,10 @@ export default function Chat() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [threads, setThreads] = useState([]);
     const [activeThreadId, setActiveThreadId] = useState(null);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [searchMode, setSearchMode] = useState(false);
     const scrollRef = useRef(null);
+    const fileInputRef = useRef(null);
 
     const token = localStorage.getItem('token');
 
@@ -106,6 +109,28 @@ export default function Chat() {
         setInput('');
         setLoading(true);
 
+        // Handle Web Search Mode
+        if (searchMode) {
+            try {
+                // Optimistic "Searching" message
+                const searchMsgId = Date.now();
+                setMessages(prev => [...prev, { role: 'assistant', content: 'Searching the web...', id: searchMsgId }]);
+
+                const result = await api.webSearch(currentInput, token);
+
+                setMessages(prev => prev.map(msg =>
+                    msg.id === searchMsgId ? { ...msg, content: result.answer || "No results found." } : msg
+                ));
+            } catch (err) {
+                console.error("Search failed", err);
+                setMessages(prev => [...prev, { role: 'error', content: 'Web search failed.' }]);
+            } finally {
+                setLoading(false);
+                setSearchMode(false); // Reset mode after search
+            }
+            return;
+        }
+
         let currentThreadId = activeThreadId;
 
         try {
@@ -148,6 +173,29 @@ export default function Chat() {
             console.error("Request failed", err);
             setMessages(prev => [...prev, { role: 'error', content: 'Error: Request failed.' }]);
             setLoading(false);
+        }
+    };
+
+    const handleFileUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            // Placeholder: functionality not implemented on backend yet
+            alert(`File selected: ${file.name}. Upload functionality coming soon.`);
+        }
+    };
+
+    const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
+    const handleOptionSelect = (option) => {
+        setIsMenuOpen(false);
+        if (option === 'webSearch') {
+            setSearchMode(true);
+            // Optionally focus input
+        } else if (option === 'upload') {
+            fileInputRef.current?.click();
+        } else if (option === 'thinking') {
+            // Placeholder for thinking mode
+            alert("Thinking mode enabled (simulation)");
         }
     };
 
@@ -227,46 +275,28 @@ export default function Chat() {
                 {!activeThreadId && messages.length === 0 ? (
                     /* Home State */
                     <div className="chat-home fade-in">
-                        <div style={{ marginBottom: '2rem' }}>
-                            <div style={{ width: '3rem', height: '3rem', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '2.5rem' }}>
+                            <div style={{ width: '2.5rem', height: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 <img src={appIcon} alt="App Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                             </div>
+                            <h1 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 600 }}>What can I help with?</h1>
                         </div>
-                        <h1>What can I help with?</h1>
 
                         <div style={{ width: '100%', maxWidth: '700px' }}>
                             <div className="input-container" style={{ background: 'transparent', padding: 0 }}>
-                                <form onSubmit={handleSend} className="input-box-wrapper">
-                                    <textarea
-                                        value={input}
-                                        onChange={(e) => setInput(e.target.value)}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' && !e.shiftKey) {
-                                                e.preventDefault();
-                                                handleSend(e);
-                                            }
-                                        }}
-                                        placeholder="Message ChatGPT"
-                                        className="chat-textarea scrollbar-thin"
-                                        rows={1}
-                                    />
-
-                                    <div className="input-actions">
-                                        <button type="button" className="attach-btn" title="Add attachment">
-                                            <Paperclip className="w-5 h-5" />
-                                        </button>
-
-                                        {input.trim() ? (
-                                            <button type="submit" className="send-btn" disabled={loading}>
-                                                <Send className="w-4 h-4" />
-                                            </button>
-                                        ) : (
-                                            <button type="button" className="attach-btn" title="Voice typing">
-                                                <Mic className="w-5 h-5" />
-                                            </button>
-                                        )}
-                                    </div>
-                                </form>
+                                <ChatInputBox
+                                    input={input}
+                                    setInput={setInput}
+                                    handleSend={handleSend}
+                                    loading={loading}
+                                    isMenuOpen={isMenuOpen}
+                                    toggleMenu={toggleMenu}
+                                    onOptionSelect={handleOptionSelect}
+                                    fileInputRef={fileInputRef}
+                                    handleFileUpload={handleFileUpload}
+                                    searchMode={searchMode}
+                                    setSearchMode={setSearchMode}
+                                />
                             </div>
                         </div>
 
@@ -317,6 +347,13 @@ export default function Chat() {
                             setInput={setInput}
                             handleSend={handleSend}
                             loading={loading}
+                            isMenuOpen={isMenuOpen}
+                            toggleMenu={toggleMenu}
+                            onOptionSelect={handleOptionSelect}
+                            fileInputRef={fileInputRef}
+                            handleFileUpload={handleFileUpload}
+                            searchMode={searchMode}
+                            setSearchMode={setSearchMode}
                         />
                     </>
                 )}
@@ -326,9 +363,45 @@ export default function Chat() {
 }
 
 // Shared Input Component extracted to prevent re-renders
-const ChatInputBox = ({ input, setInput, handleSend, loading }) => (
+// Shared Input Component extracted to prevent re-renders
+const ChatInputBox = ({
+    input, setInput, handleSend, loading,
+    isMenuOpen, toggleMenu, onOptionSelect,
+    fileInputRef, handleFileUpload, searchMode, setSearchMode
+}) => (
     <div className="input-container">
+        {searchMode && (
+            <div style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--cyan-primary)', fontSize: '0.875rem' }}>
+                <Globe className="w-4 h-4" />
+                <span>Web Search Active</span>
+                <button onClick={() => setSearchMode(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                    <X className="w-3 h-3" />
+                </button>
+            </div>
+        )}
         <form onSubmit={handleSend} className="input-box-wrapper">
+            <div style={{ position: 'relative' }}>
+                <button type="button" className="plus-btn" onClick={toggleMenu}>
+                    <Plus className="w-5 h-5" />
+                </button>
+                {isMenuOpen && (
+                    <div className="chat-options-menu">
+                        <button type="button" className="chat-option-item" onClick={() => onOptionSelect('upload')}>
+                            <FileUp />
+                            <span>Add photos & files</span>
+                        </button>
+                        <button type="button" className="chat-option-item" onClick={() => onOptionSelect('webSearch')}>
+                            <Globe />
+                            <span>Web Search</span>
+                        </button>
+                        <button type="button" className="chat-option-item" onClick={() => onOptionSelect('thinking')}>
+                            <BrainCircuit />
+                            <span>Thinking</span>
+                        </button>
+                    </div>
+                )}
+            </div>
+
             <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -338,23 +411,27 @@ const ChatInputBox = ({ input, setInput, handleSend, loading }) => (
                         handleSend(e);
                     }
                 }}
-                placeholder="Message ChatGPT"
+                placeholder={searchMode ? "Search web..." : "Message ChatGPT"}
                 className="chat-textarea scrollbar-thin"
                 rows={1}
             />
 
-            <div className="input-actions">
-                <button type="button" className="attach-btn" title="Add attachment">
-                    <Paperclip className="w-5 h-5" />
-                </button>
+            <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                style={{ display: 'none' }}
+                onChange={handleFileUpload}
+            />
 
+            <div className="input-actions" style={{ marginLeft: 'auto' }}>
                 {input.trim() ? (
                     <button
                         type="submit"
                         className="send-btn"
                         disabled={loading}
                     >
-                        <Send className="w-4 h-4" />
+                        <ArrowUp className="w-5 h-5" />
                     </button>
                 ) : (
                     <button type="button" className="attach-btn" title="Voice typing">

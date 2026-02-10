@@ -94,4 +94,16 @@ export const api = {
             if (onError) onError(error.message);
         }
     },
+    async webSearch(query, token) {
+        const response = await fetch(`${API_URL}/websearch`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ query })
+        });
+        if (!response.ok) throw new Error('Web search failed');
+        return response.json();
+    },
 };
