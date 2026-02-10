@@ -49,6 +49,14 @@ body {
   /* Make all text bold as requested */
 }
 
+input,
+textarea,
+button,
+select,
+::placeholder {
+  font-weight: 600 !important;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
