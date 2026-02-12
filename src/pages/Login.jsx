@@ -3,6 +3,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { Loader2 } from 'lucide-react';
+import appIcon from '../assets/icon.png';
 
 export default function Login() {
     const [email, setEmail] = useState('');
@@ -33,28 +34,13 @@ export default function Login() {
         <div className="auth-container">
             <div className="auth-card">
                 <div className="auth-logo">
-                    <div className="w-6 h-6 bg-white rounded-full"></div>
+                    <img src={appIcon} alt="Logo" className="w-full h-full object-contain" />
                 </div>
 
                 <h1 className="auth-title">Log in or sign up</h1>
                 <p className="auth-subtitle">
                     You'll get smarter responses and can upload files, images, and more.
                 </p>
-
-                <div className="form-group">
-                    {['Google', 'Microsoft', 'Apple'].map((provider) => (
-                        <button key={provider} type="button" className="social-btn">
-                            <span className="social-icon">
-                                <div className="w-5 h-5 bg-text-secondary/20 rounded-sm"></div>
-                            </span>
-                            <span className="mx-auto text-sm">Continue with {provider}</span>
-                        </button>
-                    ))}
-                </div>
-
-                <div className="divider">
-                    <span className="divider-text">Or</span>
-                </div>
 
                 <form onSubmit={handleLogin} className="space-y-4"> {/* space-y-4 is common util, can keep if desired or move to css. Let's assume strict vanilla and style form-group */}
                     <div className="form-group">

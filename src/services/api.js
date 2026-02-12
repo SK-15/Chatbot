@@ -106,4 +106,30 @@ export const api = {
         if (!response.ok) throw new Error('Web search failed');
         return response.json();
     },
+
+    async deleteThread(threadId, token) {
+        const response = await fetch(`${API_URL}/threads/${threadId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        if (!response.ok) throw new Error('Failed to delete thread');
+        return response.json();
+    },
+
+    async uploadFile(threadId, file, token) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await fetch(`${API_URL}/upload?thread_id=${threadId}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData
+        });
+        if (!response.ok) throw new Error('File upload failed');
+        return response.json();
+    },
 };

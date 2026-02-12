@@ -162,6 +162,76 @@ Get all chat messages for a specific thread.
         }
         ```
 
+### 7. Delete Thread
+Delete a specific thread and all associated messages.
+
+*   **URL**: `/threads/{thread_id}`
+*   **Method**: `DELETE`
+*   **Headers**:
+    *   `Authorization: Bearer <access_token>`
+*   **Success Response**:
+    *   **Code**: 200 OK
+    *   **Content**:
+        ```json
+        {
+          "message": "Thread deleted successfully"
+        }
+        ```
+*   **Error Response**:
+    *   **Code**: 404 Not Found
+    *   **Code**: 401 Unauthorized
+    *   **Code**: 500 Internal Server Error
+    *   **Code**: 500 Internal Server Error
+
+### 8. Web Search
+Perform a web search and get a synthesized answer.
+
+*   **URL**: `/websearch`
+*   **Method**: `POST`
+*   **Headers**:
+    *   `Authorization: Bearer <access_token>`
+*   **Request Body**:
+    ```json
+    {
+      "query": "Current status of solid state batteries"
+    }
+    ```
+*   **Success Response**:
+    *   **Code**: 200 OK
+    *   **Content**:
+        ```json
+        {
+          "answer": "Solid state batteries are currently..."
+        }
+        ```
+*   **Error Response**:
+    *   **Code**: 500 Internal Server Error
+
+### 9. Upload File
+Upload a file to a specific thread.
+
+*   **URL**: `/upload`
+*   **Method**: `POST`
+*   **Headers**:
+    *   `Authorization: Bearer <access_token>`
+    *   `Content-Type: multipart/form-data`
+*   **Query Parameters**:
+    *   `thread_id`: **Required**. The ID of the thread to associate the file with.
+*   **Request Body**:
+    *   `file`: The file to upload (in `multipart/form-data` form).
+*   **Success Response**:
+    *   **Code**: 200 OK
+    *   **Content**:
+        ```json
+        {
+          "message": "File uploaded and processed",
+          "url": "https://supabase-storage-url..."
+        }
+        ```
+*   **Error Response**:
+    *   **Code**: 401 Unauthorized
+    *   **Code**: 500 Internal Server Error
+
 ---
 
 ## Testing with cURL
@@ -208,6 +278,27 @@ curl -X GET http://localhost:8000/threads \
 ```bash
 curl -X GET http://localhost:8000/threads/<THREAD_ID>/chats \
      -H "Authorization: Bearer <TOKEN>"
+```
+
+### Delete Thread
+```bash
+curl -X DELETE http://localhost:8000/threads/<THREAD_ID> \
+     -H "Authorization: Bearer <TOKEN>"
+```
+
+### Web Search
+```bash
+curl -X POST http://localhost:8000/websearch \
+     -H "Authorization: Bearer <TOKEN>" \
+     -H "Content-Type: application/json" \
+     -d '{"query": "Latest news on AI"}'
+```
+
+### Upload File
+```bash
+curl -X POST "http://localhost:8000/upload?thread_id=<THREAD_ID>" \
+     -H "Authorization: Bearer <TOKEN>" \
+     -F "file=@/path/to/your/file.txt"
 ```
 
 ---

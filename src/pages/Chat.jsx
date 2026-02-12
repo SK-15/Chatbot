@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { LogOut, Plus, ArrowUp, User, Loader2, Menu, X, Mic, Paperclip, ChevronDown, Sparkles, MessageSquare, FileUp, Globe, BrainCircuit } from 'lucide-react';
+import { LogOut, Plus, ArrowUp, User, Loader2, Menu, X, Mic, Paperclip, ChevronDown, Sparkles, MessageSquare, FileUp, Globe, BrainCircuit, Trash2 } from 'lucide-react';
 import appIcon from '../assets/icon.png';
 
 export default function Chat() {
@@ -176,11 +176,42 @@ export default function Chat() {
         }
     };
 
-    const handleFileUpload = (e) => {
+    const handleFileUpload = async (e) => {
         const file = e.target.files[0];
-        if (file) {
-            // Placeholder: functionality not implemented on backend yet
-            alert(`File selected: ${file.name}. Upload functionality coming soon.`);
+        if (!file) return;
+
+        let targetThreadId = activeThreadId;
+
+        // If no active thread and we are uploading, we might need to create one first?
+        // Or we can just let it fail if no thread?
+        // The API requires a thread_id.
+        // If we are in "Home State", we don't have a thread ID yet.
+        // We should probably create a new chat if uploading on home screen.
+
+        setLoading(true);
+        try {
+            if (!targetThreadId) {
+                const newChat = await api.createChat("New Chat (File)", token);
+                targetThreadId = newChat.id;
+                setActiveThreadId(targetThreadId);
+                await loadThreads();
+            }
+
+            // Optimistic message
+            const uploadMsgId = Date.now();
+            setMessages(prev => [...prev, { role: 'user', content: `Uploading file: ${file.name}...` }]);
+
+            const response = await api.uploadFile(targetThreadId, file, token);
+
+            setMessages(prev => [...prev, { role: 'assistant', content: `File uploaded successfully: ${file.name}` }]);
+
+        } catch (err) {
+            console.error("File upload failed", err);
+            setMessages(prev => [...prev, { role: 'error', content: `Failed to upload file: ${err.message}` }]);
+        } finally {
+            setLoading(false);
+            // Reset file input
+            if (fileInputRef.current) fileInputRef.current.value = '';
         }
     };
 
@@ -203,6 +234,22 @@ export default function Chat() {
         setMessages([]);
         setActiveThreadId(null);
         setSidebarOpen(false);
+    };
+
+    const handleDeleteThread = async (e, threadId) => {
+        e.stopPropagation(); // Prevent triggering loadThreadHistory
+        if (!confirm('Are you sure you want to delete this chat?')) return;
+
+        try {
+            await api.deleteThread(threadId, token);
+            setThreads(prev => prev.filter(t => t.id !== threadId));
+            if (activeThreadId === threadId) {
+                startNewChat();
+            }
+        } catch (err) {
+            console.error("Failed to delete thread", err);
+            alert("Failed to delete thread");
+        }
     };
 
     // Shared Input Component
@@ -236,13 +283,23 @@ export default function Chat() {
                 <div style={{ flex: 1, overflowY: 'auto', padding: '0.5rem' }} className="scrollbar-thin">
                     <div className="sidebar-section-title">History</div>
                     {threads.map(thread => (
-                        <button
+                        <div
                             key={thread.id}
-                            onClick={() => loadThreadHistory(thread.id)}
                             className={`history-item ${activeThreadId === thread.id ? 'active' : ''}`}
+                            onClick={() => loadThreadHistory(thread.id)}
+                            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
                         >
-                            {thread.title}
-                        </button>
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                                {thread.title}
+                            </span>
+                            <button
+                                onClick={(e) => handleDeleteThread(e, thread.id)}
+                                className="delete-btn"
+                                title="Delete chat"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+                        </div>
                     ))}
                 </div>
 

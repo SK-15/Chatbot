@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { Loader2 } from 'lucide-react';
+import appIcon from '../assets/icon.png';
 
 export default function Signup() {
     const [email, setEmail] = useState('');
@@ -29,7 +30,7 @@ export default function Signup() {
         <div className="auth-container">
             <div className="auth-card">
                 <div className="auth-logo">
-                    <div className="w-6 h-6 bg-white rounded-full"></div>
+                    <img src={appIcon} alt="Logo" className="w-full h-full object-contain" />
                 </div>
 
                 <h1 className="auth-title">Create an account</h1>
