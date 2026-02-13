@@ -3,6 +3,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import appIcon from '../assets/icon.png';
 
 export default function Login() {
@@ -32,7 +33,12 @@ export default function Login() {
 
     return (
         <div className="auth-container">
-            <div className="auth-card">
+            <motion.div
+                className="auth-card"
+                initial={{ opacity: 0, y: 24, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            >
                 <div className="auth-logo">
                     <img src={appIcon} alt="Logo" className="w-full h-full object-contain" />
                 </div>
@@ -76,7 +82,7 @@ export default function Login() {
                     Don't have an account?{' '}
                     <Link to="/signup" style={{ color: 'var(--primary-color)', textDecoration: 'none' }}>Sign up</Link>
                 </p>
-            </div>
+            </motion.div>
         </div>
     );
 }

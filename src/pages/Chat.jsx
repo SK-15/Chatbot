@@ -4,8 +4,21 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { motion, AnimatePresence } from 'framer-motion';
 import { LogOut, Plus, ArrowUp, User, Loader2, Menu, X, Mic, Paperclip, ChevronDown, Sparkles, MessageSquare, FileUp, Globe, BrainCircuit, Trash2 } from 'lucide-react';
 import appIcon from '../assets/icon.png';
+
+// Framer Motion animation variants
+const messageVariants = {
+    hidden: { opacity: 0, y: 16, scale: 0.98 },
+    visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] } },
+    exit: { opacity: 0, y: -8, transition: { duration: 0.2 } }
+};
+
+const chipVariants = {
+    hover: { scale: 1.05, y: -2 },
+    tap: { scale: 0.97 }
+};
 
 export default function Chat() {
     const { logout, user } = useAuth();
@@ -265,10 +278,7 @@ export default function Chat() {
 
             {/* Sidebar */}
             <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-                <div style={{ padding: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <button onClick={() => setSidebarOpen(false)} className="md:hidden" style={{ background: 'none', border: 'none', color: 'var(--text-secondary)' }}>
-                        <X className="w-5 h-5" />
-                    </button>
+                <div style={{ padding: '0.75rem', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                     <button onClick={startNewChat} className="new-chat-btn">
                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <div style={{ background: 'transparent', padding: '0.125rem' }}>
@@ -318,8 +328,8 @@ export default function Chat() {
             <main className="main-content">
                 {/* Sticky Header */}
                 <header className="chat-header">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} className="md:hidden">
-                        <button onClick={() => setSidebarOpen(true)} style={{ padding: '0.5rem', marginLeft: '-0.5rem', background: 'none', border: 'none', color: 'var(--text-secondary)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ padding: '0.5rem', marginLeft: '-0.5rem', background: 'none', border: 'none', color: 'var(--text-secondary)' }} title={sidebarOpen ? "Close sidebar" : "Open sidebar"}>
                             <Menu className="w-5 h-5" />
                         </button>
                     </div>
@@ -358,14 +368,20 @@ export default function Chat() {
                         </div>
 
                         <div className="suggestion-grid">
-                            {['Create a workout plan', 'Explain quantum physics', 'Write a python script', 'Plan a trip to Japan'].map(suggestion => (
-                                <button
+                            {['Create a workout plan', 'Explain quantum physics', 'Write a python script', 'Plan a trip to Japan'].map((suggestion, i) => (
+                                <motion.button
                                     key={suggestion}
                                     onClick={() => { setInput(suggestion); }}
                                     className="suggestion-chip"
+                                    variants={chipVariants}
+                                    whileHover="hover"
+                                    whileTap="tap"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: i * 0.08 }}
                                 >
                                     {suggestion}
-                                </button>
+                                </motion.button>
                             ))}
                         </div>
                     </div>
@@ -374,27 +390,37 @@ export default function Chat() {
                     <>
                         <div className="chat-scroll-area scrollbar-thin">
                             <div className="message-container">
-                                {messages.map((msg, i) => (
-                                    <div key={i} className={`message-row ${msg.role === 'user' ? 'user' : 'assistant'}`}>
-                                        {msg.role !== 'user' && (
-                                            <div className="avatar" style={{ border: 'none', background: 'transparent', borderRadius: 0 }}>
-                                                <img src={appIcon} alt="AI" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                                            </div>
-                                        )}
+                                <AnimatePresence initial={false}>
+                                    {messages.map((msg, i) => (
+                                        <motion.div
+                                            key={msg.id || i}
+                                            className={`message-row ${msg.role === 'user' ? 'user' : 'assistant'}`}
+                                            variants={messageVariants}
+                                            initial="hidden"
+                                            animate="visible"
+                                            exit="exit"
+                                            layout
+                                        >
+                                            {msg.role !== 'user' && (
+                                                <div className="avatar" style={{ border: 'none', background: 'transparent', borderRadius: 0 }}>
+                                                    <img src={appIcon} alt="AI" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                                </div>
+                                            )}
 
-                                        <div className="message-content">
-                                            <div className="prose prose-invert">
-                                                {msg.role === 'error' ? (
-                                                    <span style={{ color: '#f87171' }}>{msg.content}</span>
-                                                ) : (
-                                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                                        {msg.content}
-                                                    </ReactMarkdown>
-                                                )}
+                                            <div className="message-content">
+                                                <div className="prose prose-invert">
+                                                    {msg.role === 'error' ? (
+                                                        <span style={{ color: '#f87171' }}>{msg.content}</span>
+                                                    ) : (
+                                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                                            {msg.content}
+                                                        </ReactMarkdown>
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                ))}
+                                        </motion.div>
+                                    ))}
+                                </AnimatePresence>
                                 <div ref={scrollRef} style={{ height: '1rem' }} />
                             </div>
                         </div>
@@ -483,17 +509,25 @@ const ChatInputBox = ({
 
             <div className="input-actions" style={{ marginLeft: 'auto' }}>
                 {input.trim() ? (
-                    <button
+                    <motion.button
                         type="submit"
                         className="send-btn"
                         disabled={loading}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
                     >
                         <ArrowUp className="w-5 h-5" />
-                    </button>
+                    </motion.button>
                 ) : (
-                    <button type="button" className="attach-btn" title="Voice typing">
+                    <motion.button
+                        type="button"
+                        className="attach-btn"
+                        title="Voice typing"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                    >
                         <Mic className="w-5 h-5" />
-                    </button>
+                    </motion.button>
                 )}
             </div>
         </form>
