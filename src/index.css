@@ -304,11 +304,10 @@ select,
   box-shadow: var(--shadow-lg);
 }
 
-.auth-logo {
-  width: 56px;
-  height: 56px;
-  margin: 0 auto 1.5rem;
+.glass-icon {
   background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -316,7 +315,29 @@ select,
   border: 1px solid var(--glass-border);
   box-shadow: var(--glow-cyan);
   overflow: hidden;
-  /* Prevent logo from bleeding out as a huge background element */
+}
+
+.glass-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 8px;
+}
+
+.auth-logo {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 1.5rem;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glow-cyan);
+  overflow: hidden;
 }
 
 .auth-logo img {
@@ -324,7 +345,6 @@ select,
   height: 100%;
   object-fit: contain;
   padding: 8px;
-  /* Give the logo some breathing room inside the circle */
 }
 
 .auth-title {

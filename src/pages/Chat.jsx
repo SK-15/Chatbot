@@ -343,10 +343,10 @@ export default function Chat() {
                     /* Home State */
                     <div className="chat-home fade-in">
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '2.5rem' }}>
-                            <div style={{ width: '2.5rem', height: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <img src={appIcon} alt="App Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                            <div className="glass-icon" style={{ width: '3.5rem', height: '3.5rem' }}>
+                                <img src={appIcon} alt="App Logo" />
                             </div>
-                            <h1 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 600 }}>What can I help with?</h1>
+                            <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: 600 }}>What can I help with?</h1>
                         </div>
 
                         <div style={{ width: '100%', maxWidth: '700px' }}>
@@ -402,8 +402,8 @@ export default function Chat() {
                                             layout
                                         >
                                             {msg.role !== 'user' && (
-                                                <div className="avatar" style={{ border: 'none', background: 'transparent', borderRadius: 0 }}>
-                                                    <img src={appIcon} alt="AI" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                                <div className="glass-icon" style={{ width: '32px', height: '32px', flexShrink: 0, border: 'none' }}>
+                                                    <img src={appIcon} alt="AI" />
                                                 </div>
                                             )}
 
