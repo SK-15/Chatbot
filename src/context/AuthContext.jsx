@@ -12,13 +12,19 @@ export const AuthProvider = ({ children }) => {
         // Check local storage for token on mount
         const token = localStorage.getItem('token');
         const userId = localStorage.getItem('user_id');
-        if (token && userId) {
+        const isValid = token && userId && token !== 'null' && userId !== 'null' && token !== 'undefined' && userId !== 'undefined';
+        if (isValid) {
             setUser({ id: userId });
+        } else {
+            // Clean up any corrupted/stale values
+            localStorage.removeItem('token');
+            localStorage.removeItem('user_id');
         }
         setLoading(false);
     }, []);
 
     const login = (token, userId) => {
+        if (!token || !userId || token === 'null' || userId === 'null') return;
         localStorage.setItem('token', token);
         localStorage.setItem('user_id', userId);
         setUser({ id: userId });

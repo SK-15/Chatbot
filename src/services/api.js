@@ -1,5 +1,12 @@
 const API_URL = 'https://adcrkz336r.ap-south-1.awsapprunner.com';
 
+export class AuthError extends Error {
+    constructor() {
+        super('Session expired. Please log in again.');
+        this.name = 'AuthError';
+    }
+}
+
 export const api = {
     async signup(email, password) {
         const response = await fetch(`${API_URL}/signup`, {
@@ -36,9 +43,8 @@ export const api = {
             },
             body: JSON.stringify({ title })
         });
-        if (!response.ok) {
-            throw new Error('Failed to create new chat');
-        }
+        if (response.status === 401) throw new AuthError();
+        if (!response.ok) throw new Error('Failed to create new chat');
         return response.json();
     },
 
@@ -46,6 +52,7 @@ export const api = {
         const response = await fetch(`${API_URL}/threads`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
+        if (response.status === 401) throw new AuthError();
         if (!response.ok) throw new Error('Failed to fetch threads');
         return response.json();
     },
@@ -54,6 +61,7 @@ export const api = {
         const response = await fetch(`${API_URL}/threads/${threadId}/chats`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
+        if (response.status === 401) throw new AuthError();
         if (!response.ok) throw new Error('Failed to fetch chat history');
         return response.json();
     },
@@ -73,6 +81,7 @@ export const api = {
                 }),
             });
 
+            if (response.status === 401) throw new AuthError();
             if (!response.ok) {
                 const errorText = await response.text();
                 throw new Error(errorText || 'Chat request failed');
@@ -103,6 +112,7 @@ export const api = {
             },
             body: JSON.stringify({ query })
         });
+        if (response.status === 401) throw new AuthError();
         if (!response.ok) throw new Error('Web search failed');
         return response.json();
     },
@@ -114,6 +124,7 @@ export const api = {
                 'Authorization': `Bearer ${token}`
             }
         });
+        if (response.status === 401) throw new AuthError();
         if (!response.ok) throw new Error('Failed to delete thread');
         return response.json();
     },
@@ -129,6 +140,7 @@ export const api = {
             },
             body: formData
         });
+        if (response.status === 401) throw new AuthError();
         if (!response.ok) throw new Error('File upload failed');
         return response.json();
     },

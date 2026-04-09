@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../services/api';
+import { api, AuthError } from '../services/api';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -48,6 +48,7 @@ export default function Chat() {
             const data = await api.getThreads(token);
             setThreads(data.threads || []);
         } catch (err) {
+            if (err instanceof AuthError) { logout(); return; }
             console.error("Failed to load threads", err);
         }
     };
@@ -92,6 +93,7 @@ export default function Chat() {
 
             setMessages(history);
         } catch (err) {
+            if (err instanceof AuthError) { logout(); return; }
             console.error("Failed to load history", err);
             setMessages([{ role: 'error', content: 'Failed to load chat history.' }]);
         } finally {
@@ -135,6 +137,7 @@ export default function Chat() {
                     msg.id === searchMsgId ? { ...msg, content: result.answer || "No results found." } : msg
                 ));
             } catch (err) {
+                if (err instanceof AuthError) { logout(); return; }
                 console.error("Search failed", err);
                 setMessages(prev => [...prev, { role: 'error', content: 'Web search failed.' }]);
             } finally {
@@ -183,6 +186,7 @@ export default function Chat() {
                 }
             );
         } catch (err) {
+            if (err instanceof AuthError) { logout(); return; }
             console.error("Request failed", err);
             setMessages(prev => [...prev, { role: 'error', content: 'Error: Request failed.' }]);
             setLoading(false);
@@ -219,6 +223,7 @@ export default function Chat() {
             setMessages(prev => [...prev, { role: 'assistant', content: `File uploaded successfully: ${file.name}` }]);
 
         } catch (err) {
+            if (err instanceof AuthError) { logout(); return; }
             console.error("File upload failed", err);
             setMessages(prev => [...prev, { role: 'error', content: `Failed to upload file: ${err.message}` }]);
         } finally {
