@@ -4,6 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import MermaidBlock from '../components/MermaidBlock';
+
+function isMermaidBlockClosed(text) {
+    const opens = (text.match(/```mermaid/g) || []).length;
+    const closes = (text.match(/```(?!mermaid)[\s\S]/g) || []).length;
+    return closes >= opens;
+}
 import { motion, AnimatePresence } from 'framer-motion';
 import { LogOut, Plus, ArrowUp, User, Loader2, Menu, X, Mic, Paperclip, ChevronDown, Sparkles, MessageSquare, FileUp, Globe, BrainCircuit, Trash2 } from 'lucide-react';
 import appIcon from '../assets/icon.png';
@@ -412,7 +419,22 @@ export default function Chat() {
                                                     {msg.role === 'error' ? (
                                                         <span style={{ color: '#f87171' }}>{msg.content}</span>
                                                     ) : (
-                                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                                        <ReactMarkdown
+                                                            remarkPlugins={[remarkGfm]}
+                                                            components={{
+                                                                code({ node, inline, className, children }) {
+                                                                    const lang = /language-(\w+)/.exec(className || '')?.[1];
+                                                                    const code = String(children).trim();
+                                                                    if (!inline && lang === 'mermaid') {
+                                                                        if (isMermaidBlockClosed(msg.content)) {
+                                                                            return <MermaidBlock code={code} />;
+                                                                        }
+                                                                        return <div className="animate-pulse h-24 bg-white/5 rounded" />;
+                                                                    }
+                                                                    return <code className={className}>{children}</code>;
+                                                                }
+                                                            }}
+                                                        >
                                                             {msg.content}
                                                         </ReactMarkdown>
                                                     )}
