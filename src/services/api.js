@@ -9,7 +9,11 @@ export const api = {
         });
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.detail || 'Signup failed');
+            let msg = error.detail || 'Signup failed';
+            if (typeof msg === 'string' && msg.includes('for url:')) {
+                msg = msg.includes('422') ? 'Account creation failed: Invalid email or weak password (must be 8+ chars).' : 'Signup failed. Please try again.';
+            }
+            throw new Error(msg);
         }
         return response.json();
     },
@@ -22,7 +26,11 @@ export const api = {
         });
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.detail || 'Login failed');
+            let msg = error.detail || 'Login failed';
+            if (typeof msg === 'string' && msg.includes('for url:')) {
+                msg = msg.includes('401') ? 'Invalid email or password.' : 'Login failed. Please try again.';
+            }
+            throw new Error(msg);
         }
         return response.json();
     },
