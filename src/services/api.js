@@ -1,4 +1,4 @@
-const API_URL = 'https://adcrkz336r.ap-south-1.awsapprunner.com';
+const API_URL = 'https://chatbot-backend-u5cy.onrender.com';
 
 export const api = {
     async signup(email, password) {
