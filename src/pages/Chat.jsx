@@ -114,12 +114,8 @@ export default function Chat() {
         navigate('/login');
     };
 
-    const scrollToBottom = () => {
-        scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
-
     useEffect(() => {
-        scrollToBottom();
+        scrollRef.current?.scrollIntoView({ behavior: loading ? 'instant' : 'smooth' });
     }, [messages]);
 
     const handleSend = async (e) => {
@@ -400,6 +396,24 @@ export default function Chat() {
                     <>
                         <div className="chat-scroll-area scrollbar-thin">
                             <div className="message-container">
+                                {loading && messages.length === 0 && (
+                                    <>
+                                        {[
+                                            [90, 70, 50],
+                                            [60, 80],
+                                            [85, 55, 65],
+                                        ].map((lines, ri) => (
+                                            <div key={ri} className="skeleton-row">
+                                                <div className="skeleton-line skeleton-avatar" />
+                                                <div className="skeleton-body">
+                                                    {lines.map((w, li) => (
+                                                        <div key={li} className="skeleton-line" style={{ height: '14px', width: `${w}%` }} />
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </>
+                                )}
                                 <AnimatePresence initial={false}>
                                     {messages.map((msg, i) => {
                                         const isStreamingMsg = loading && msg.role === 'assistant' && i === messages.length - 1;
@@ -411,7 +425,6 @@ export default function Chat() {
                                             initial="hidden"
                                             animate="visible"
                                             exit="exit"
-                                            layout
                                         >
                                             {msg.role !== 'user' && (
                                                 <div className="glass-icon" style={{ width: '32px', height: '32px', flexShrink: 0, border: 'none' }}>

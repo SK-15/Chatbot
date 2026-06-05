@@ -976,6 +976,45 @@ select,
   animation: cursorBlink 0.8s ease infinite;
 }
 
+/* Skeleton loading shimmer */
+@keyframes shimmer {
+  0% { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
+}
+
+.skeleton-line {
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.04) 25%,
+    rgba(255,255,255,0.09) 50%,
+    rgba(255,255,255,0.04) 75%
+  );
+  background-size: 600px 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+
+.skeleton-row {
+  display: flex;
+  gap: 1rem;
+  padding: 0.25rem 0;
+}
+
+.skeleton-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skeleton-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+}
+
 /* Loading dot animation for typing indicator */
 @keyframes typingBounce {
 
