@@ -4,6 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 import MermaidBlock from '../components/MermaidBlock';
 
 function isMermaidBlockClosed(text) {
@@ -398,7 +401,9 @@ export default function Chat() {
                         <div className="chat-scroll-area scrollbar-thin">
                             <div className="message-container">
                                 <AnimatePresence initial={false}>
-                                    {messages.map((msg, i) => (
+                                    {messages.map((msg, i) => {
+                                        const isStreamingMsg = loading && msg.role === 'assistant' && i === messages.length - 1;
+                                        return (
                                         <motion.div
                                             key={msg.id || i}
                                             className={`message-row ${msg.role === 'user' ? 'user' : 'assistant'}`}
@@ -419,8 +424,10 @@ export default function Chat() {
                                                     {msg.role === 'error' ? (
                                                         <span style={{ color: '#f87171' }}>{msg.content}</span>
                                                     ) : (
+                                                        <>
                                                         <ReactMarkdown
-                                                            remarkPlugins={[remarkGfm]}
+                                                            remarkPlugins={[remarkGfm, remarkMath]}
+                                                            rehypePlugins={[rehypeKatex]}
                                                             components={{
                                                                 code({ node, inline, className, children }) {
                                                                     const lang = /language-(\w+)/.exec(className || '')?.[1];
@@ -437,11 +444,14 @@ export default function Chat() {
                                                         >
                                                             {msg.content}
                                                         </ReactMarkdown>
+                                                        {isStreamingMsg && <span className="streaming-cursor" />}
+                                                        </>
                                                     )}
                                                 </div>
                                             </div>
                                         </motion.div>
-                                    ))}
+                                        );
+                                    })}
                                 </AnimatePresence>
                                 <div ref={scrollRef} style={{ height: '1rem' }} />
                             </div>
