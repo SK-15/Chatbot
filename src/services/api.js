@@ -1,4 +1,4 @@
-const API_URL = 'https://chatbot-backend-u5cy.onrender.com';
+const API_URL = 'https://chatbot-backend-jvx6.onrender.com';
 
 export const api = {
     async signup(email, password) {
